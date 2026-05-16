@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../app";
+@source "../components";
 
 @theme {
   --color-surface: #020617; /* slate-950 */
