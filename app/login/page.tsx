@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Sparkles, Loader2, Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   
   const router = useRouter();
-  const supabase = createClient();
+
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +34,8 @@ export default function LoginPage() {
         router.push("/editor");
         // router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred during authentication.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred during authentication.");
     } finally {
       setLoading(false);
     }
@@ -48,8 +48,8 @@ export default function LoginPage() {
       // Mock OAuth delay
       await new Promise(resolve => setTimeout(resolve, 800));
       router.push("/editor");
-    } catch (err: any) {
-      setError(err.message || `Could not authenticate with ${provider}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Could not authenticate with ${provider}.`);
       setLoading(false);
     }
   };

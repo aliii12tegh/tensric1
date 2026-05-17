@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useRef } from "react";
@@ -110,7 +111,7 @@ function ImageComparisonSlider() {
   );
 }
 
-function TiltFeatureCard({ feature }: { feature: any }) {
+function TiltFeatureCard({ feature }: { feature: { icon: React.ElementType, title: string, desc: string } }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });

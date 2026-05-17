@@ -34,8 +34,8 @@ export async function processImageUpscale(imageUrl: string, scale: number) {
 
     return { success: true, url: output };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Upscale error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
