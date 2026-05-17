@@ -16,6 +16,12 @@ export default function EditorPage() {
   const [fixMoire, setFixMoire] = useState(false);
   const [colorRestoration, setColorRestoration] = useState(true);
 
+  // App State
+  const [hasUploadedImage, setHasUploadedImage] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isUpscaled, setIsUpscaled] = useState(false);
+
   // Image comparison slider state
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,6 +54,34 @@ export default function EditorPage() {
       handleSliderMove(e.touches[0].clientX);
     }
   }, [isDragging, handleSliderMove]);
+
+  const handleUpload = () => {
+    setHasUploadedImage(true);
+    setIsUpscaled(false);
+    setProgress(0);
+    setSliderPosition(50);
+  };
+
+  const handleRunUpscaler = () => {
+    if (!hasUploadedImage || isProcessing || isUpscaled) return;
+    setIsProcessing(true);
+    setProgress(0);
+    
+    // Simulate processing
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.floor(Math.random() * 15) + 5;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsProcessing(false);
+          setIsUpscaled(true);
+        }, 500);
+      }
+      setProgress(currentProgress);
+    }, 400);
+  };
 
   return (
     <div className="h-screen flex text-white font-sans overflow-hidden">
@@ -186,79 +220,145 @@ export default function EditorPage() {
           {/* Comparison Preview Area */}
           <div
             ref={sliderRef}
-            className="relative flex-1 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl group min-h-[500px] select-none"
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleMouseDown}
-            onTouchEnd={handleMouseUp}
-            onTouchMove={handleTouchMove}
-            style={{ cursor: isDragging ? 'grabbing' : 'col-resize' }}
+            className={`relative flex-1 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl group min-h-[500px] select-none ${!isUpscaled ? 'flex items-center justify-center' : ''}`}
+            {...(isUpscaled ? {
+              onMouseDown: handleMouseDown,
+              onMouseUp: handleMouseUp,
+              onMouseMove: handleMouseMove,
+              onMouseLeave: handleMouseUp,
+              onTouchStart: handleMouseDown,
+              onTouchEnd: handleMouseUp,
+              onTouchMove: handleTouchMove,
+              style: { cursor: isDragging ? 'grabbing' : 'col-resize' }
+            } : {})}
           >
-            {/* Bottom Layer: Upscaled (full width, always visible) */}
-            <img 
-              alt="Upscaled Image" 
-              className="absolute inset-0 w-full h-full object-cover" 
-              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
-              draggable={false}
-            />
-            <div className="absolute top-4 right-4 bg-blue-900/20 backdrop-blur-md px-4 py-2 rounded-xl border border-blue-500/30 z-10">
-              <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Upscaled ({scale === 2 ? '1440p' : scale === 4 ? '4K' : '8K'} AI)</span>
-            </div>
-
-            {/* Top Layer: Original (clipped by slider position) */}
-            <div
-              className="absolute inset-0"
-              style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-            >
-              <img 
-                alt="Original Image" 
-                className="absolute inset-0 w-full h-full object-cover grayscale opacity-40" 
-                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
-                draggable={false}
-              />
-              <div className="absolute top-4 left-4 bg-blue-900/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
-                <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Original (720p)</span>
+            {!hasUploadedImage && (
+              <div className="flex flex-col items-center justify-center text-center p-8">
+                <ImageIcon className="w-16 h-16 text-slate-700 mb-4" />
+                <h3 className="font-display text-2xl font-bold text-white mb-2">No Image Selected</h3>
+                <p className="text-slate-400">Please upload an image below to begin upscaling.</p>
               </div>
-            </div>
+            )}
 
-            {/* Comparison Handle / Divider */}
-            <div
-              className="absolute inset-y-0 z-10 flex items-center justify-center"
-              style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
-            >
-              <div className="absolute inset-y-0 w-[2px] bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]" />
-              <div className="relative w-10 h-10 rounded-full bg-slate-900 shadow-xl flex items-center justify-center border border-blue-500/50 backdrop-blur-md">
-                <div className="flex gap-1">
-                  <div className="w-1 h-3 bg-blue-400 rounded-full" />
-                  <div className="w-1 h-3 bg-blue-400 rounded-full" />
+            {hasUploadedImage && !isProcessing && !isUpscaled && (
+              <>
+                <img 
+                  alt="Original Image" 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  draggable={false}
+                />
+                <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
+                  <span className="text-xs font-bold text-slate-300 tracking-wider uppercase">Original (Ready to process)</span>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
 
-            {/* Bottom Floating Toolbar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.5)] z-20 pointer-events-auto">
-              <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                <ZoomIn className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Zoom</span>
-              </button>
-              <div className="w-px h-6 bg-slate-700" />
-              <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                <Crop className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Crop</span>
-              </button>
-              <div className="w-px h-6 bg-slate-700" />
-              <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                <FlipHorizontal className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Mirror</span>
-              </button>
-            </div>
+            {hasUploadedImage && isProcessing && (
+              <>
+                <img 
+                  alt="Processing Image" 
+                  className="absolute inset-0 w-full h-full object-cover brightness-50" 
+                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  draggable={false}
+                />
+                <motion.div 
+                  className="absolute inset-0 border-t-2 border-blue-500 bg-gradient-to-b from-blue-500/20 to-transparent z-10"
+                  animate={{ y: ['-100%', '100%'] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                  <div className="relative w-24 h-24 flex items-center justify-center">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90">
+                      <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-800" />
+                      <circle 
+                        cx="48" cy="48" r="44" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="8" 
+                        className="text-blue-500 transition-all duration-300 ease-out" 
+                        strokeDasharray={`${2 * Math.PI * 44}`} 
+                        strokeDashoffset={`${2 * Math.PI * 44 * (1 - progress / 100)}`} 
+                      />
+                    </svg>
+                    <span className="font-bold text-xl text-white relative z-10">{progress}%</span>
+                  </div>
+                  <p className="mt-4 font-bold text-blue-400 animate-pulse tracking-wider text-sm uppercase">Enhancing Detail...</p>
+                </div>
+              </>
+            )}
+
+            {hasUploadedImage && isUpscaled && (
+              <>
+                <img 
+                  alt="Upscaled Image" 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  draggable={false}
+                />
+                <div className="absolute top-4 right-4 bg-blue-900/20 backdrop-blur-md px-4 py-2 rounded-xl border border-blue-500/30 z-10">
+                  <span className="text-xs font-bold text-blue-400 tracking-wider uppercase">Upscaled ({scale === 2 ? '1440p' : scale === 4 ? '4K' : '8K'} AI)</span>
+                </div>
+
+                <div
+                  className="absolute inset-0 z-10"
+                  style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+                >
+                  <img 
+                    alt="Original Image" 
+                    className="absolute inset-0 w-full h-full object-cover grayscale opacity-40" 
+                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                    draggable={false}
+                  />
+                  <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
+                    <span className="text-xs font-bold text-slate-300 tracking-wider uppercase">Original (720p)</span>
+                  </div>
+                </div>
+
+                <div
+                  className="absolute inset-y-0 z-20 flex items-center justify-center pointer-events-none"
+                  style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
+                >
+                  <div className="absolute inset-y-0 w-[2px] bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]" />
+                  <div className="relative w-10 h-10 rounded-full bg-slate-900 shadow-xl flex items-center justify-center border border-blue-500/50 backdrop-blur-md">
+                    <div className="flex gap-1">
+                      <div className="w-1 h-3 bg-blue-400 rounded-full" />
+                      <div className="w-1 h-3 bg-blue-400 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+
+                <button className="absolute bottom-24 right-6 z-30 bg-white text-blue-900 p-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {hasUploadedImage && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.5)] z-30 pointer-events-auto">
+                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
+                  <ZoomIn className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Zoom</span>
+                </button>
+                <div className="w-px h-6 bg-slate-700" />
+                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
+                  <Crop className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Crop</span>
+                </button>
+                <div className="w-px h-6 bg-slate-700" />
+                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
+                  <FlipHorizontal className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Mirror</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Bento Grid Upload Area */}
           <div className="mt-8 grid grid-cols-12 gap-6">
-            <div className="col-span-8 bg-slate-900 rounded-2xl p-8 flex flex-col items-center justify-center hover:bg-blue-900/10 hover:border-blue-500/30 border border-slate-800 transition-all cursor-pointer group">
+            <div onClick={handleUpload} className="col-span-8 bg-slate-900 rounded-2xl p-8 flex flex-col items-center justify-center hover:bg-blue-900/10 hover:border-blue-500/30 border border-slate-800 transition-all cursor-pointer group">
               <div className="w-16 h-16 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                 <UploadCloud className="w-8 h-8 text-blue-500" />
               </div>
@@ -381,9 +481,13 @@ export default function EditorPage() {
 
           {/* Sticky Bottom Button */}
           <div className="mt-auto p-6 bg-slate-950/50 border-t border-white/5">
-            <button className="w-full py-4 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(29,78,216,0.3)] active:scale-95 transition-all hover:brightness-110">
+            <button 
+              onClick={handleRunUpscaler}
+              disabled={!hasUploadedImage || isProcessing || isUpscaled}
+              className="w-full py-4 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(29,78,216,0.3)] active:scale-95 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
+            >
               <Zap className="w-5 h-5" />
-              Run Upscaler
+              {isProcessing ? "Processing..." : isUpscaled ? "Upscaled!" : "Run Upscaler"}
             </button>
           </div>
         </aside>
