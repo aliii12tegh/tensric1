@@ -329,7 +329,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/login" className="w-full py-3 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
+                <Link href="/login" className="block w-full py-3 px-6 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
                   Get Started
                 </Link>
               </motion.div>
@@ -356,13 +356,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/login" className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white text-center hover:shadow-[0_0_15px_rgba(29,78,216,0.5)] transition-all">
+                  <Link href="/login" className="block w-full py-3 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white text-center hover:shadow-[0_0_15px_rgba(29,78,216,0.5)] transition-all">
                     Upgrade to Pro
                   </Link>
                 </div>
               </motion.div>
 
-              {/* Enterprise Plan */}
+              {/* Premium Plan */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -370,7 +370,7 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col"
               >
-                <h3 className="font-display text-xl font-bold mb-2">Enterprise</h3>
+                <h3 className="font-display text-xl font-bold mb-2">Premium</h3>
                 <div className="text-4xl font-bold mb-6">$99<span className="text-lg text-slate-500 font-normal">/mo</span></div>
                 <p className="text-slate-400 mb-8 text-sm">For high volume teams.</p>
                 <ul className="space-y-4 mb-10 flex-1">
@@ -381,8 +381,8 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/login" className="w-full py-3 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
-                  Contact Sales
+                <Link href="/login" className="block w-full py-3 px-6 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
+                  Upgrade to Premium
                 </Link>
               </motion.div>
             </div>
