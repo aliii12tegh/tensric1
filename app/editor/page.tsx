@@ -24,6 +24,13 @@ export default function EditorPage() {
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Batch Processing States
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const batchFileInputRef = useRef<HTMLInputElement>(null);
+
   // Image Control States
   const [isZoomed, setIsZoomed] = useState(false);
   const [isCropped, setIsCropped] = useState(false);
@@ -76,6 +83,38 @@ export default function EditorPage() {
       setProgress(0);
       setSliderPosition(50);
     }
+  };
+
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setBatchFiles(files);
+      setIsBatchModalOpen(true);
+      setBatchProgress(0);
+      setIsBatchProcessing(false);
+    }
+  };
+
+  const handleRunBatch = () => {
+    setIsBatchProcessing(true);
+    setBatchProgress(0);
+    
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.floor(Math.random() * 10) + 2;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+      }
+      setBatchProgress(currentProgress);
+    }, 300);
+  };
+
+  const closeBatchModal = () => {
+    setIsBatchModalOpen(false);
+    setBatchFiles([]);
+    setBatchProgress(0);
+    setIsBatchProcessing(false);
   };
 
   const handleRunUpscaler = () => {
@@ -419,7 +458,8 @@ export default function EditorPage() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-2 block">Quick Action</span>
                 <h4 className="font-display font-bold text-white leading-tight text-lg">Apply presets to multiple images</h4>
               </div>
-              <button className="w-full py-3 bg-transparent border border-white/10 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4">
+              <input type="file" multiple ref={batchFileInputRef} onChange={handleBatchFileChange} accept="image/png, image/jpeg, image/webp" className="hidden" />
+              <button onClick={() => batchFileInputRef.current?.click()} className="w-full py-3 bg-transparent border border-white/10 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4">
                 Select Batch
               </button>
             </div>
@@ -541,6 +581,75 @@ export default function EditorPage() {
         </aside>
 
       </section>
+
+      {/* Batch Processing Modal */}
+      <AnimatePresence>
+        {isBatchModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+            >
+              {!isBatchProcessing && batchProgress === 0 ? (
+                <>
+                  <h3 className="font-display text-2xl font-bold text-white mb-2">Batch Processing Ready</h3>
+                  <p className="text-slate-400 mb-6">You have selected <span className="text-white font-bold">{batchFiles.length} images</span>.</p>
+                  
+                  <div className="bg-slate-950/50 p-4 rounded-xl border border-blue-500/30 mb-8 flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-300">Total Cost:</span>
+                    <span className="text-xl font-bold text-blue-400">{batchFiles.length} Credits</span>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button onClick={closeBatchModal} className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={handleRunBatch} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-[0_0_15px_rgba(29,78,216,0.3)] hover:brightness-110 active:scale-95 transition-all">
+                      Confirm & Process
+                    </button>
+                  </div>
+                </>
+              ) : batchProgress < 100 ? (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="w-16 h-16 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-6" />
+                  <h3 className="font-display text-xl font-bold text-white mb-2">Processing Batch...</h3>
+                  <div className="w-full bg-slate-950 rounded-full h-3 mt-4 overflow-hidden border border-slate-800">
+                    <motion.div 
+                      className="bg-blue-500 h-full rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${batchProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-blue-400 font-bold mt-3 text-sm">{batchProgress}%</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-6">
+                    <Zap className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <h3 className="font-display text-xl font-bold text-white mb-2">Batch processed successfully!</h3>
+                  <p className="text-slate-400 mb-8">{batchFiles.length} credits deducted.</p>
+                  
+                  <div className="w-full space-y-3">
+                    <button className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-[0_0_15px_rgba(29,78,216,0.3)] hover:brightness-110 active:scale-95 transition-all">
+                      Download All (ZIP)
+                    </button>
+                    <button onClick={closeBatchModal} className="w-full py-3 rounded-xl font-bold text-slate-400 hover:text-white transition-colors">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-}
