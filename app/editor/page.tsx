@@ -24,12 +24,12 @@ export default function EditorPage() {
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Batch Processing States
+  // Batch Processing State
   const [batchFiles, setBatchFiles] = useState<File[]>([]);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
-  const batchFileInputRef = useRef<HTMLInputElement>(null);
+  const batchInputRef = useRef<HTMLInputElement>(null);
 
   // Image Control States
   const [isZoomed, setIsZoomed] = useState(false);
@@ -85,38 +85,6 @@ export default function EditorPage() {
     }
   };
 
-  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setBatchFiles(files);
-      setIsBatchModalOpen(true);
-      setBatchProgress(0);
-      setIsBatchProcessing(false);
-    }
-  };
-
-  const handleRunBatch = () => {
-    setIsBatchProcessing(true);
-    setBatchProgress(0);
-    
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.floor(Math.random() * 10) + 2;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(interval);
-      }
-      setBatchProgress(currentProgress);
-    }, 300);
-  };
-
-  const closeBatchModal = () => {
-    setIsBatchModalOpen(false);
-    setBatchFiles([]);
-    setBatchProgress(0);
-    setIsBatchProcessing(false);
-  };
-
   const handleRunUpscaler = () => {
     if (!hasUploadedImage || isProcessing || isUpscaled) return;
     setIsProcessing(true);
@@ -136,6 +104,33 @@ export default function EditorPage() {
       }
       setProgress(currentProgress);
     }, 400);
+  };
+
+  const handleBatchSelect = () => {
+    batchInputRef.current?.click();
+  };
+
+  const handleBatchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setBatchFiles(Array.from(e.target.files));
+      setIsBatchModalOpen(true);
+      setBatchProgress(0);
+      setIsBatchProcessing(false);
+    }
+  };
+
+  const handleProcessBatch = () => {
+    setIsBatchProcessing(true);
+    setBatchProgress(0);
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.floor(Math.random() * 10) + 2;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+      }
+      setBatchProgress(currentProgress);
+    }, 300);
   };
 
   const handleDiscard = () => {
@@ -458,8 +453,8 @@ export default function EditorPage() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-2 block">Quick Action</span>
                 <h4 className="font-display font-bold text-white leading-tight text-lg">Apply presets to multiple images</h4>
               </div>
-              <input type="file" multiple ref={batchFileInputRef} onChange={handleBatchFileChange} accept="image/png, image/jpeg, image/webp" className="hidden" />
-              <button onClick={() => batchFileInputRef.current?.click()} className="w-full py-3 bg-transparent border border-white/10 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4">
+              <input type="file" multiple ref={batchInputRef} onChange={handleBatchChange} accept="image/png, image/jpeg, image/webp" className="hidden" />
+              <button onClick={handleBatchSelect} className="w-full py-3 bg-transparent border border-white/10 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all mt-4">
                 Select Batch
               </button>
             </div>
@@ -585,67 +580,87 @@ export default function EditorPage() {
       {/* Batch Processing Modal */}
       <AnimatePresence>
         {isBatchModalOpen && (
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl"
             >
-              {!isBatchProcessing && batchProgress === 0 ? (
-                <>
-                  <h3 className="font-display text-2xl font-bold text-white mb-2">Batch Processing Ready</h3>
-                  <p className="text-slate-400 mb-6">You have selected <span className="text-white font-bold">{batchFiles.length} images</span>.</p>
-                  
-                  <div className="bg-slate-950/50 p-4 rounded-xl border border-blue-500/30 mb-8 flex items-center justify-between">
-                    <span className="text-sm font-bold text-slate-300">Total Cost:</span>
-                    <span className="text-xl font-bold text-blue-400">{batchFiles.length} Credits</span>
-                  </div>
+              <h2 className="font-display text-2xl font-bold text-white mb-2">Batch Processing Ready</h2>
+              <p className="text-slate-400 mb-6">You have selected <strong className="text-white">{batchFiles.length}</strong> images to process with your current presets.</p>
+              
+              <div className="bg-slate-950 p-4 rounded-xl border border-white/5 mb-8 flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Estimated Cost</span>
+                <span className="text-xl font-extrabold text-blue-400">{batchFiles.length} Credits</span>
+              </div>
 
-                  <div className="flex gap-4">
-                    <button onClick={closeBatchModal} className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-                      Cancel
-                    </button>
-                    <button onClick={handleRunBatch} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-[0_0_15px_rgba(29,78,216,0.3)] hover:brightness-110 active:scale-95 transition-all">
-                      Confirm & Process
-                    </button>
-                  </div>
-                </>
-              ) : batchProgress < 100 ? (
-                <div className="flex flex-col items-center justify-center py-6">
-                  <div className="w-16 h-16 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-6" />
-                  <h3 className="font-display text-xl font-bold text-white mb-2">Processing Batch...</h3>
-                  <div className="w-full bg-slate-950 rounded-full h-3 mt-4 overflow-hidden border border-slate-800">
-                    <motion.div 
-                      className="bg-blue-500 h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${batchProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-blue-400 font-bold mt-3 text-sm">{batchProgress}%</p>
+              {!isBatchProcessing && batchProgress === 0 && (
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => { setIsBatchModalOpen(false); setBatchFiles([]); }}
+                    className="flex-1 py-3 rounded-xl font-bold bg-slate-800 text-white hover:bg-slate-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleProcessBatch}
+                    className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white hover:brightness-110 transition-all shadow-[0_0_15px_rgba(29,78,216,0.4)]"
+                  >
+                    Confirm & Process
+                  </button>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-6">
-                    <Zap className="w-8 h-8 text-blue-500" />
+              )}
+
+              {isBatchProcessing && batchProgress < 100 && (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Processing...</span>
+                    <span className="text-sm font-bold text-blue-500">{batchProgress}%</span>
                   </div>
-                  <h3 className="font-display text-xl font-bold text-white mb-2">Batch processed successfully!</h3>
-                  <p className="text-slate-400 mb-8">{batchFiles.length} credits deducted.</p>
+                  <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-blue-500 h-full rounded-full transition-all duration-300 ease-out relative"
+                      style={{ width: `${batchProgress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {batchProgress === 100 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center"
+                >
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 border border-green-500 flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
+                  <p className="text-white font-bold mb-1">Batch processed successfully!</p>
+                  <p className="text-slate-400 text-sm mb-6">{batchFiles.length} credits deducted.</p>
                   
-                  <div className="w-full space-y-3">
-                    <button className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-[0_0_15px_rgba(29,78,216,0.3)] hover:brightness-110 active:scale-95 transition-all">
-                      Download All (ZIP)
-                    </button>
-                    <button onClick={closeBatchModal} className="w-full py-3 rounded-xl font-bold text-slate-400 hover:text-white transition-colors">
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => { setIsBatchModalOpen(false); setBatchFiles([]); }}
+                      className="flex-1 py-3 rounded-xl font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
+                    >
                       Close
                     </button>
+                    <button 
+                      onClick={() => alert("Downloading ZIP...")}
+                      className="flex-1 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+                    >
+                      Download All (ZIP)
+                    </button>
                   </div>
-                </div>
+                </motion.div>
               )}
             </motion.div>
           </motion.div>
@@ -653,3 +668,4 @@ export default function EditorPage() {
       </AnimatePresence>
     </div>
   );
+}
