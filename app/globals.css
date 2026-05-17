@@ -3,12 +3,29 @@
 @source "../components";
 
 @theme {
-  --color-surface: #020617; /* slate-950 */
-  --color-surface-container-low: #0f172a; /* slate-900 */
-  --color-primary: #1d4ed8; /* blue-700 */
-  
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-manrope);
+  --color-surface: #0e0e0e;
+  --color-surface-container-low: #131313;
+  --color-surface-container: #1a1a1a;
+  --color-surface-container-highest: #262626;
+  --color-surface-bright: #2c2c2c;
+  --color-surface-dim: #0a0a0a;
+  --color-primary: #84adff;
+  --color-primary-dim: #0070ea;
+  --color-on-primary: #ffffff;
+  --color-background: #0e0e0e;
+  --color-outline: #333333;
+  --color-outline-variant: #333333;
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #adaaaa;
+  --color-primary-container: #84adff;
+  --color-primary-fixed: #84adff;
+  --color-on-primary-fixed: #000000;
+  --color-secondary: #7e98ff;
+  --color-secondary-container: #2c2c2c;
+
+  --font-headline: var(--font-manrope);
+  --font-body: var(--font-inter);
+  --font-label: var(--font-inter);
 }
 
 @utility glass {
@@ -19,12 +36,10 @@
 
 :root {
   --background: var(--color-surface);
-  --foreground: #f8fafc; /* slate-50 */
+  --foreground: var(--color-on-surface);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
 }
-
-

@@ -1,397 +1,275 @@
-"use client";
+import React from 'react';
 
-import { useState, useRef } from "react";
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { ArrowRight, Sparkles, Zap, Shield, Image as ImageIcon, Layers, Cpu, CheckCircle } from "lucide-react";
-import Link from "next/link";
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
-};
-
-function ImageComparisonSlider() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Exact slider logic as requested
-  const [sliderPosition, setSliderPosition] = useState(50);
-
-  // 3D Tilt logic
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  
-  // Exceptionally smooth, fluid, and buttery spring physics
-  const mouseXSpring = useSpring(x, { stiffness: 60, damping: 15, mass: 0.5 });
-  const mouseYSpring = useSpring(y, { stiffness: 60, damping: 15, mass: 0.5 });
-  
-  // Significantly increased tilt intensity
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["25deg", "-25deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-25deg", "25deg"]);
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    
-    // Slider target update
-    const pointerX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const percent = (pointerX / rect.width) * 100;
-    setSliderPosition(percent);
-
-    // Tilt logic
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handlePointerLeave = () => {
-    setSliderPosition(50);
-    x.set(0);
-    y.set(0);
-  };
-
+export default function Page() {
   return (
-    <motion.div 
-      style={{ rotateX, rotateY, perspective: 1200 }}
-      className="w-full max-w-6xl mx-auto aspect-video shadow-2xl shadow-blue-900/40 rounded-3xl"
-    >
-      <div 
-        ref={containerRef}
-        className="relative w-full h-full rounded-3xl overflow-hidden cursor-crosshair select-none border border-white/5"
-        onPointerMove={handlePointerMove}
-        onPointerLeave={handlePointerLeave}
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* 1. BOTTOM LAYER (High-Res / After - always visible underneath) */}
-        <img 
-          src="/oussamine-high.jpg" 
-          alt="High Resolution After Upscaling" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0" 
-        />
-        
-        {/* 2. TOP LAYER (Low-Res / Before - masked by the slider position) */}
-        <img 
-          src="/oussamine-low.jpg" 
-          alt="Low Resolution Before" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10" 
-          style={{ clipPath: `inset(0 calc(100% - ${sliderPosition}%) 0 0)` }}
-        />
+    <div className="bg-background text-on-surface font-body selection:bg-primary/30 selection:text-white" data-mode="connect">
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      <style dangerouslySetInnerHTML={{ __html: `
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+          vertical-align: middle;
+        }
+        .glass-overlay {
+          background: rgba(132, 173, 255, 0.1);
+          backdrop-filter: blur(20px);
+        }
+        .primary-gradient {
+          background: linear-gradient(135deg, #84adff 0%, #0070ea 100%);
+        }
+        .ambient-shadow {
+          box-shadow: 0px 24px 48px rgba(0, 0, 0, 0.5);
+        }
+        input[type=range] {
+          -webkit-appearance: none;
+          width: 100%;
+          background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 4px;
+          cursor: pointer;
+          background: #333333;
+          border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+          height: 18px;
+          width: 18px;
+          border-radius: 50%;
+          background: #84adff;
+          cursor: pointer;
+          -webkit-appearance: none;
+          margin-top: -7px;
+          border: none;
+          box-shadow: 0 0 10px rgba(132, 173, 255, 0.4);
+        }
+      `}} />
 
-        {/* 3. SLIDER DIVIDER (The vertical line) */}
-        <div 
-          className="absolute inset-y-0 w-[2px] bg-white/60 backdrop-blur shadow-[0_0_15px_rgba(255,255,255,0.8)] pointer-events-none z-20 transition-all duration-75 ease-out"
-          style={{ left: `${sliderPosition}%` }}
-        />
-
-        {/* Floating Badges */}
-        <div 
-          className="absolute bottom-6 left-6 glass px-4 py-2 rounded-xl flex items-center gap-2 pointer-events-none z-30 border border-white/10 shadow-xl"
-          style={{ transform: "translateZ(30px)" }}
-        >
-          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]" />
-          <span className="text-xs font-bold tracking-wider text-white">REAL-ESRGAN V3</span>
-        </div>
-        <div 
-          className="absolute bottom-6 right-6 glass px-4 py-2 rounded-xl pointer-events-none z-30 border border-white/10 shadow-xl bg-blue-900/20"
-          style={{ transform: "translateZ(30px)" }}
-        >
-          <span className="text-xs font-bold text-white tracking-wider">4X UPSCALED</span>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function TiltFeatureCard({ feature }: { feature: any }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
-  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  return (
-    <motion.div 
-      variants={fadeUp}
-      style={{ rotateX, rotateY, perspective: 1000 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => { x.set(0); y.set(0); }}
-    >
-      <div className="bg-slate-900 h-full border border-slate-800 p-8 rounded-3xl hover:border-blue-600/50 hover:shadow-[0_0_20px_rgba(29,78,216,0.15)] transition-colors duration-300 transform-gpu" style={{ transformStyle: "preserve-3d" }}>
-        <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center mb-6" style={{ transform: "translateZ(20px)" }}>
-          <feature.icon className="w-6 h-6 text-blue-500" />
-        </div>
-        <h3 className="font-display text-xl font-bold mb-3" style={{ transform: "translateZ(10px)" }}>{feature.title}</h3>
-        <p className="text-slate-400 leading-relaxed" style={{ transform: "translateZ(5px)" }}>{feature.desc}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen text-slate-50 font-sans selection:bg-blue-600/30 overflow-x-hidden relative">
-      {/* Ambient Radial Gradient Background */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-blue-900/10 blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-blue-800/10 blur-[150px]" />
-      </div>
-
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 glass">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-display font-bold text-xl tracking-tight">Tensric</span>
+      {/* TopNavBar Shared Component */}
+      <header className="fixed top-0 w-full z-50 bg-surface h-16">
+        <div className="flex justify-between items-center h-16 px-6 w-full max-w-[1920px] mx-auto font-['Manrope'] antialiased">
+          <div className="flex items-center gap-8">
+            <span className="text-xl font-bold tracking-tight text-white">Obsidian Lens</span>
+            <nav className="hidden md:flex items-center gap-6">
+              <a className="text-sm font-bold text-[#84adff]" href="#">Home</a>
+              <a className="text-sm font-medium text-[#adaaaa] hover:bg-[#2c2c2c] px-2 py-1 rounded transition-colors duration-200" href="#">Gallery</a>
+              <a className="text-sm font-medium text-[#adaaaa] hover:bg-[#2c2c2c] px-2 py-1 rounded transition-colors duration-200" href="#">Pricing</a>
+            </nav>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <Link href="#features" className="hover:text-white transition-colors">Features</Link>
-            <Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <Link href="/about" className="hover:text-white transition-colors">About</Link>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-sm font-medium hover:text-blue-400 transition-colors">
-              Sign In
-            </Link>
-            <Link 
-              href="/login" 
-              className="text-sm font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white px-5 py-2.5 rounded-full hover:shadow-[0_0_20px_rgba(29,78,216,0.5)] transition-all transform hover:scale-105 active:scale-95"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <main className="relative z-10 pt-32">
-        {/* Hero Section */}
-        <section className="px-6 pb-24 pt-10 flex flex-col items-center text-center">
-          <motion.div 
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-            className="flex flex-col items-center max-w-4xl mx-auto mb-16"
-          >
-            <motion.div variants={fadeUp} className="inline-block px-3 py-1 glass text-blue-400 text-xs font-bold rounded-full mb-6 tracking-wider">
-              V3.0 IS NOW LIVE
-            </motion.div>
-            <motion.h1 variants={fadeUp} className="font-display text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-tight">
-              4X Clarity.<br />
-              Zero Artifacts.
-            </motion.h1>
-            <motion.p variants={fadeUp} className="text-lg text-slate-400 mb-10 font-medium max-w-2xl mx-auto leading-relaxed">
-              Professional AI image upscaling powered by state-of-the-art neural networks. Restore details, remove noise, and breathe new life into your visuals instantly.
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex justify-center w-full">
-              <Link 
-                href="/login" 
-                className="group flex items-center justify-center gap-3 bg-gradient-to-r from-blue-700 to-blue-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all hover:shadow-[0_0_30px_rgba(29,78,216,0.5)] hover:scale-105"
-              >
-                Start Upscaling For Free
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="w-full px-4 lg:px-0"
-          >
-            <ImageComparisonSlider />
-          </motion.div>
-        </section>
-
-        {/* Features Bento Grid */}
-        <section id="features" className="py-24 px-6 bg-slate-900/50 border-y border-white/5">
-          <div className="max-w-7xl mx-auto">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-16"
-            >
-              <span className="text-blue-500 font-bold tracking-widest text-sm uppercase mb-3 block">Features</span>
-              <h2 className="font-display text-4xl md:text-5xl font-bold">Everything You Need to Create</h2>
-            </motion.div>
-            
-            <motion.div 
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: "-100px" }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {[
-                { icon: Zap, title: "Lightning Fast", desc: "Process 4K images in seconds with our optimized cloud infrastructure." },
-                { icon: ImageIcon, title: "Lossless Detail", desc: "Advanced AI models preserve textures while eliminating compression artifacts." },
-                { icon: Shield, title: "Secure Storage", desc: "Your original and upscaled assets are encrypted and stored safely." },
-                { icon: Layers, title: "Batch Processing", desc: "Upscale hundreds of images at once with our bulk upload tool." },
-                { icon: Cpu, title: "Multiple Models", desc: "Choose between specialized models for art, photos, and anime." },
-                { icon: Sparkles, title: "API Access", desc: "Integrate our upscaling engine directly into your own workflow." },
-              ].map((feature, i) => (
-                <TiltFeatureCard key={i} feature={feature} />
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Showcase Section */}
-        <section className="py-24 px-6 max-w-7xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-display text-4xl font-bold mb-4">Stunning Results</h2>
-            <p className="text-slate-400">See the magic of deep learning applied to real images.</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800&auto=format&fit=crop",
-              "https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=800&auto=format&fit=crop",
-              "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop"
-            ].map((src, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer"
-              >
-                <img 
-                  src={src} 
-                  alt="Showcase example" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                  <span className="text-white font-medium flex items-center gap-2">
-                    View Details <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="py-32 px-6 bg-slate-900/30 border-y border-white/5">
-          <div className="max-w-7xl mx-auto">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h2>
-              <p className="text-slate-400">Start for free, upgrade when you need more power.</p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-5xl mx-auto">
-              {/* Starter Plan */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col"
-              >
-                <h3 className="font-display text-xl font-bold mb-2">Starter</h3>
-                <div className="text-4xl font-bold mb-6">$0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
-                <p className="text-slate-400 mb-8 text-sm">Perfect for occasional use and testing.</p>
-                <ul className="space-y-4 mb-10 flex-1">
-                  {["10 upscales/month", "Standard speed", "Up to 2x magnification"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/login" className="w-full py-3 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
-                  Get Started
-                </Link>
-              </motion.div>
-
-              {/* Pro Plan */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="p-10 rounded-3xl bg-slate-900 border-2 border-blue-600 flex flex-col relative shadow-[0_0_30px_rgba(29,78,216,0.2)] md:-translate-y-4"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2" />
-                <div className="relative z-10">
-                  <div className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 text-xs font-bold rounded-full mb-4 uppercase tracking-wider">Most Popular</div>
-                  <h3 className="font-display text-2xl font-bold mb-2 text-white">Pro</h3>
-                  <div className="text-5xl font-bold mb-6 text-white">$19<span className="text-lg text-slate-400 font-normal">/mo</span></div>
-                  <p className="text-slate-400 mb-8 text-sm">For creators and professionals.</p>
-                  <ul className="space-y-4 mb-10 flex-1">
-                    {["Unlimited upscales", "Priority processing", "Up to 8x magnification", "API Access"].map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 font-medium text-slate-200 text-sm">
-                        <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/login" className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white text-center hover:shadow-[0_0_15px_rgba(29,78,216,0.5)] transition-all">
-                    Upgrade to Pro
-                  </Link>
-                </div>
-              </motion.div>
-
-              {/* Enterprise Plan */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col"
-              >
-                <h3 className="font-display text-xl font-bold mb-2">Enterprise</h3>
-                <div className="text-4xl font-bold mb-6">$99<span className="text-lg text-slate-500 font-normal">/mo</span></div>
-                <p className="text-slate-400 mb-8 text-sm">For high volume teams.</p>
-                <ul className="space-y-4 mb-10 flex-1">
-                  {["Unlimited everything", "Dedicated GPU cluster", "Custom integrations", "24/7 Phone support"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/login" className="w-full py-3 rounded-xl font-bold bg-slate-800 text-center hover:bg-slate-700 transition-colors">
-                  Contact Sales
-                </Link>
-              </motion.div>
+          <div className="flex items-center gap-4">
+            <button className="material-symbols-outlined text-[#adaaaa] p-2 hover:bg-[#2c2c2c] rounded-full transition-colors active:scale-95">notifications</button>
+            <button className="material-symbols-outlined text-[#adaaaa] p-2 hover:bg-[#2c2c2c] rounded-full transition-colors active:scale-95">settings</button>
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-[#2c2c2c] border border-[#333333]">
+              <img alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgXbTVkEyNVsmIBITzBY5R0O9XkZrmrdvhh7E43IlGknYzUSy-8hulgp5IgkNV6ZHflp9-DRzlhXExaUH7LS99gRrMXy3rLMjMmPb4TduJfBVOn2J0nx4zovU0JlVw3sluEvme2TPXCD8Qvi-CvoYs9AYwrTrqbOSNdTIZPtBK8O5tBTuBkNnf4z_YgqMzkHFSxAu_ndkyXtHKkvJ7LnVdYAkzbZtgwf1dVrOuWOsCwi0fFhx3C6qovcOxeJU0fLWiQojC0XcwVTs"/>
             </div>
           </div>
+        </div>
+      </header>
+      <main className="flex h-screen pt-16 overflow-hidden">
+        {/* SideNavBar Shared Component */}
+        <aside className="fixed left-0 h-full w-64 bg-surface-container-low flex flex-col gap-2 pt-8 font-['Manrope'] text-sm font-medium">
+          <div className="px-6 py-4 mb-2">
+            <h2 className="text-[1.5rem] tracking-tight font-black text-white leading-tight">Obsidian Lens</h2>
+            <p className="text-[10px] uppercase tracking-widest text-[#adaaaa]">High-Performance Synthesis</p>
+          </div>
+          <nav className="flex flex-col gap-1">
+            <a className="bg-[#262626] text-[#84adff] rounded-md mx-2 px-4 py-3 flex items-center gap-3 transition-all duration-200" href="#">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              Upscaler
+            </a>
+            <a className="text-[#adaaaa] mx-2 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1a1a] hover:text-white transition-all hover:translate-x-1 duration-200" href="#">
+              <span className="material-symbols-outlined">face</span>
+              Avatar
+            </a>
+            <a className="text-[#adaaaa] mx-2 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1a1a] hover:text-white transition-all hover:translate-x-1 duration-200" href="#">
+              <span className="material-symbols-outlined">grid_view</span>
+              Gallery
+            </a>
+            <a className="text-[#adaaaa] mx-2 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1a1a] hover:text-white transition-all hover:translate-x-1 duration-200" href="#">
+              <span className="material-symbols-outlined">payments</span>
+              Billing
+            </a>
+          </nav>
+          <div className="mt-auto p-4 mx-2 mb-20 bg-[#1a1a1a] rounded-xl border border-[#333333]/30">
+            <p className="text-[10px] font-bold mb-2 text-[#adaaaa] uppercase tracking-wider">Storage Limit</p>
+            <div className="w-full bg-[#0e0e0e] h-1.5 rounded-full mb-2">
+              <div className="bg-[#007BFF] w-3/4 h-1.5 rounded-full shadow-[0_0_8px_rgba(0,123,255,0.5)]"></div>
+            </div>
+            <p className="text-[10px] text-[#adaaaa]/60">750MB of 1GB used</p>
+          </div>
+        </aside>
+        {/* Main Workspace */}
+        <section className="flex-1 ml-64 bg-surface flex overflow-hidden">
+          {/* Central Canvas */}
+          <div className="flex-1 flex flex-col p-8 overflow-y-auto">
+            <div className="mb-8 flex justify-between items-end">
+              <div>
+                <h1 className="font-headline text-[3.5rem] leading-tight font-extrabold tracking-tight text-white mb-2">Editor Workspace</h1>
+                <p className="text-[#adaaaa] text-sm">Enhance clarity and detail with our proprietary AI models.</p>
+              </div>
+              <div className="flex gap-3">
+                <button className="px-6 py-2.5 rounded-md font-headline text-sm font-bold text-primary transition-all hover:bg-surface-bright">Discard</button>
+                <button className="px-8 py-2.5 rounded-md primary-gradient text-white font-headline text-sm font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all hover:bg-surface-bright">Export Result</button>
+              </div>
+            </div>
+            {/* Comparison Preview Area */}
+            <div className="relative flex-1 rounded-xl overflow-hidden bg-[#131313] border border-[#1a1a1a] shadow-2xl group min-h-[500px]">
+              <div className="absolute inset-0 flex">
+                {/* Left: Original */}
+                <div className="relative w-1/2 overflow-hidden border-r-2 border-[#007BFF]/30">
+                  <img alt="Original Image" className="absolute inset-0 w-[200%] h-full object-cover grayscale opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVFmrRtfUnqDdBA_9T3HZNEtokp2puZcCg9l6yqb-3lTxWvLL8e85VRjysVahsAWHdl8RvZpYJbqFG-nhhqt1PAG5MJnbnF-juSqemFtGRrtoqBubPDMDYIAxHJ7CCpZROFgszFeIwt1_s4vXVG3ur4ny6P677GvQwOTxZ-h_j7R0qY0whlDEQ1cKGxZf8lg05OXP87XDVjbKnank-ihytKW5y90EcPHlewcRycX_oaqJvqIiz50A__L_JtqsoeOAPfL6Pz3xQ1-o"/>
+                  <div className="absolute top-4 left-4 glass-overlay px-3 py-1.5 rounded-lg border border-[#333333]">
+                    <span className="text-xs font-bold text-secondary tracking-wider uppercase">Original (720p)</span>
+                  </div>
+                </div>
+                {/* Right: Upscaled */}
+                <div className="relative w-1/2 overflow-hidden">
+                  <img alt="Upscaled Image" className="absolute right-0 w-[200%] h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfGmHfXd8gaI5oKoq4xegbf7_tPWLKXvFc9Y9oH3A1WsCSpE_mWrmwRXph5_ekTYdf3_tel4Vx-ebVZHuPZOACdAaBAWdPQ7icSi0AeQFLgVIoGjs3jt9vDIL9YCxI_o0esxVa4GdoZUNCIYLo5yhyVKFtCMF4Cv4Wlqq0bFqSCcO-IGoE5vvyo96p0j-jNDjG7E_WWVajSPJju1dbewliDjIhrgP6VtVmTvOUvXjbugmldk8upbCS8IPMnnha8Yke14h5iy9RfcU"/>
+                  <div className="absolute top-4 right-4 glass-overlay px-3 py-1.5 rounded-lg border border-[#007BFF]/30">
+                    <span className="text-xs font-bold text-secondary tracking-wider uppercase">Upscaled (4K AI)</span>
+                  </div>
+                </div>
+              </div>
+              {/* Comparison Handle */}
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-primary z-10 flex items-center justify-center shadow-[0_0_15px_rgba(132,173,255,0.6)]">
+                <div className="w-10 h-10 rounded-full bg-surface shadow-xl flex items-center justify-center cursor-ew-resize border border-primary/50 glass-overlay">
+                  <span className="material-symbols-outlined text-primary text-xl">unfold_more</span>
+                </div>
+              </div>
+              {/* Bottom Floating Toolbar */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass-overlay px-6 py-3 rounded-full flex items-center gap-6 border border-outline-variant/15 ambient-shadow">
+                <button className="flex flex-col items-center gap-1 group">
+                  <span className="material-symbols-outlined text-[#adaaaa] group-hover:text-[#007BFF] transition-colors">zoom_in</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-[#adaaaa]">Zoom</span>
+                </button>
+                <div className="w-px h-6 bg-[#333333]"></div>
+                <button className="flex flex-col items-center gap-1 group">
+                  <span className="material-symbols-outlined text-[#adaaaa] group-hover:text-[#007BFF] transition-colors">crop</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-[#adaaaa]">Crop</span>
+                </button>
+                <div className="w-px h-6 bg-[#333333]"></div>
+                <button className="flex flex-col items-center gap-1 group">
+                  <span className="material-symbols-outlined text-[#adaaaa] group-hover:text-[#007BFF] transition-colors">flip</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tighter text-[#adaaaa]">Mirror</span>
+                </button>
+              </div>
+            </div>
+            {/* Bento Grid Upload Area */}
+            <div className="mt-8 grid grid-cols-12 gap-6">
+              <div className="col-span-8 bg-surface-container-low rounded-xl p-8 flex flex-col items-center justify-center hover:bg-primary-container/20 hover:border-primary/15 border border-transparent transition-all cursor-pointer group">
+                <div className="w-16 h-16 rounded-full bg-surface-container border border-outline flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:shadow-[0_0_20px_rgba(132,173,255,0.2)]">
+                  <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_upload</span>
+                </div>
+                <h3 className="font-headline font-bold text-white">Click or drag images to upscale</h3>
+                <p className="text-on-surface-variant text-sm mt-1">Supports JPG, PNG, WEBP (Max 50MB)</p>
+              </div>
+              <div className="col-span-4 bg-surface-container-low rounded-xl p-6 flex flex-col justify-between border border-surface-container">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">Quick Action</span>
+                  <h4 className="font-headline font-bold text-white leading-tight">Apply presets to multiple images</h4>
+                </div>
+                <button className="w-full py-3 bg-transparent border border-outline-variant/15 text-white rounded-md font-headline text-xs font-bold hover:bg-surface-container-highest transition-all">Select Batch</button>
+              </div>
+            </div>
+          </div>
+          {/* Parameters Sidebar */}
+          <aside className="w-80 bg-surface-container-low flex flex-col overflow-y-auto">
+            <div className="p-6">
+              <h2 className="font-headline text-[1.5rem] tracking-tight font-bold text-white">Parameters</h2>
+              <p className="text-xs text-[#adaaaa] mt-1">Fine-tune the AI processing</p>
+            </div>
+            <div className="p-6 flex flex-col gap-8">
+              {/* Scale Factor */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="font-label font-bold text-sm text-[#adaaaa] uppercase tracking-tight">Upscale Factor</label>
+                  <span className="text-xs font-bold bg-[#007BFF]/20 text-[#84adff] px-2 py-0.5 rounded">4x</span>
+                </div>
+                <div className="grid grid-cols-3 bg-surface-container-highest rounded-md p-1">
+                  <button className="py-1.5 rounded text-on-surface-variant text-xs font-bold hover:text-white transition-all">2x</button>
+                  <button className="py-1.5 rounded bg-primary-fixed text-on-primary-fixed text-xs font-bold transition-all shadow-[0_2px_4px_rgba(0,0,0,0.2)]">4x</button>
+                  <button className="py-1.5 rounded text-on-surface-variant text-xs font-bold hover:text-white transition-all">8x</button>
+                </div>
+              </div>
+              {/* AI Model */}
+              <div className="space-y-3">
+                <label className="font-label font-bold text-sm text-[#adaaaa] uppercase tracking-tight">AI Model</label>
+                <div className="flex flex-col gap-2">
+                  <div className="p-3 bg-[#1a1a1a] rounded-xl border border-[#007BFF]/40 flex items-center gap-3 cursor-pointer">
+                    <div className="w-2 h-2 rounded-full bg-[#007BFF] shadow-[0_0_8px_#007BFF]"></div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-white">Precision Pro v3</p>
+                      <p className="text-[10px] text-[#adaaaa]">Best for landscapes &amp; textures</p>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#131313] rounded-xl border border-[#333333] flex items-center gap-3 cursor-pointer hover:bg-[#1a1a1a] transition-all">
+                    <div className="w-2 h-2 rounded-full bg-[#333333]"></div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-[#adaaaa]">Face Enhance</p>
+                      <p className="text-[10px] text-[#adaaaa]/60">Optimized for portraits</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Sliders */}
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <label className="text-xs font-bold text-[#adaaaa]">Noise Reduction</label>
+                    <span className="text-xs font-medium text-[#007BFF]">45%</span>
+                  </div>
+                  <input className="w-full" max="100" min="0" type="range" defaultValue="45" />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <label className="text-xs font-bold text-[#adaaaa]">Sharpening</label>
+                    <span className="text-xs font-medium text-[#007BFF]">20%</span>
+                  </div>
+                  <input className="w-full" max="100" min="0" type="range" defaultValue="20" />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <label className="text-xs font-bold text-[#adaaaa]">Deblocking</label>
+                    <span className="text-xs font-medium text-[#007BFF]">62%</span>
+                  </div>
+                  <input className="w-full" max="100" min="0" type="range" defaultValue="62" />
+                </div>
+              </div>
+              {/* Toggles */}
+              <div className="space-y-4 pt-4 border-t border-[#1a1a1a]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#adaaaa]">Fix Moiré Patterns</span>
+                  <div className="w-9 h-5 bg-[#333333] rounded-full p-1 cursor-pointer">
+                    <div className="w-3 h-3 bg-[#adaaaa] rounded-full"></div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Color Restoration</span>
+                  <div className="w-9 h-5 bg-[#007BFF]/30 rounded-full p-1 cursor-pointer flex justify-end">
+                    <div className="w-3 h-3 bg-[#007BFF] rounded-full shadow-[0_0_8px_#007BFF]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-auto p-6 bg-[#1a1a1a]/50">
+              <button className="w-full py-4 primary-gradient text-white rounded-md font-headline font-bold text-sm flex items-center justify-center gap-2 ambient-shadow active:scale-95 transition-all">
+                <span className="material-symbols-outlined text-lg">bolt</span>
+                Run Upscaler
+              </button>
+            </div>
+          </aside>
         </section>
       </main>
-
       {/* Footer */}
-      <footer className="py-12 text-center border-t border-white/5 relative z-10 bg-slate-950">
-        <p className="text-slate-500 text-sm">© {new Date().getFullYear()} Tensric. All rights reserved.</p>
+      <footer className="w-full py-6 bg-[#0e0e0e] border-t border-[#1a1a1a] z-50">
+        <div className="flex justify-between items-center px-8 max-w-[1920px] mx-auto">
+          <span className="font-body text-[10px] uppercase tracking-widest text-[#adaaaa]/40">© 2024 Obsidian Lens AI</span>
+          <div className="flex gap-8">
+            <a className="font-body text-[10px] uppercase tracking-widest text-[#adaaaa]/40 hover:text-white transition-colors" href="#">Help Center</a>
+            <a className="font-body text-[10px] uppercase tracking-widest text-[#adaaaa]/40 hover:text-white transition-colors" href="#">API</a>
+            <a className="font-body text-[10px] uppercase tracking-widest text-[#adaaaa]/40 hover:text-white transition-colors" href="#">Terms</a>
+            <a className="font-body text-[10px] uppercase tracking-widest text-[#adaaaa]/40 hover:text-white transition-colors" href="#">Privacy</a>
+          </div>
+        </div>
       </footer>
     </div>
   );
