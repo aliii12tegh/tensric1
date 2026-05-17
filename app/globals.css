@@ -3,23 +3,38 @@
 @source "../components";
 
 @theme {
-  --color-surface: #020617; /* slate-950 */
-  --color-surface-container-low: #0f172a; /* slate-900 */
-  --color-primary: #1d4ed8; /* blue-700 */
+  --color-surface: #131313;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #20201f;
+  --color-surface-container-high: #2a2a2a;
+  --color-primary: #d0bcff;
+  --color-primary-container: #a078ff;
+  --color-secondary: #5de6ff;
+  --color-on-surface: #e5e2e1;
+  --color-outline: #958ea0;
+  --color-outline-variant: #494454;
   
   --font-sans: var(--font-inter);
-  --font-display: var(--font-manrope);
+  --font-display: var(--font-sora);
+  --font-mono: var(--font-jetbrains);
 }
 
 @utility glass {
-  background-color: color-mix(in srgb, #020617 80%, transparent);
-  backdrop-filter: blur(16px);
+  background-color: color-mix(in srgb, #131313 80%, transparent);
+  backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+@utility glass-card {
+  background-color: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid;
+  border-image: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)) 1;
+}
+
 :root {
-  --background: var(--color-surface);
-  --foreground: #f8fafc; /* slate-50 */
+  --background: #050505;
+  --foreground: #e5e2e1;
 }
 
 body {
@@ -32,4 +47,7 @@ body {
   100% { transform: translateX(-50%); }
 }
 
-
+@keyframes bloom-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.05); }
+}
