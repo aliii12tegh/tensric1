@@ -24,6 +24,11 @@ export default function EditorPage() {
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Image Control States
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isCropped, setIsCropped] = useState(false);
+  const [isMirrored, setIsMirrored] = useState(false);
+
   // Image comparison slider state
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -92,6 +97,33 @@ export default function EditorPage() {
       }
       setProgress(currentProgress);
     }, 400);
+  };
+
+  const handleDiscard = () => {
+    setUserImageUrl(null);
+    setHasUploadedImage(false);
+    setIsProcessing(false);
+    setIsUpscaled(false);
+    setProgress(0);
+    setIsZoomed(false);
+    setIsCropped(false);
+    setIsMirrored(false);
+    setSliderPosition(50);
+  };
+
+  const handleExport = () => {
+    if (!isUpscaled || !userImageUrl) return;
+    const a = document.createElement("a");
+    a.href = userImageUrl;
+    a.download = "tensric-upscaled.jpg";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const imageStyle = {
+    transform: `${isZoomed ? 'scale(1.5)' : 'scale(1)'} ${isMirrored ? 'scaleX(-1)' : 'scaleX(1)'}`,
+    transition: 'transform 0.3s ease'
   };
 
   return (
@@ -223,8 +255,8 @@ export default function EditorPage() {
               <p className="text-slate-400 text-sm font-medium">Enhance clarity and detail with our proprietary AI models.</p>
             </div>
             <div className="flex gap-3">
-              <button className="px-6 py-2.5 rounded-xl font-bold text-blue-500 transition-all hover:bg-slate-900">Discard</button>
-              <button className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 text-white font-bold shadow-[0_0_20px_rgba(29,78,216,0.4)] active:scale-[0.98] transition-all hover:brightness-110">Export Result</button>
+              <button onClick={handleDiscard} className="px-6 py-2.5 rounded-xl font-bold text-blue-500 transition-all hover:bg-slate-900">Discard</button>
+              <button onClick={handleExport} className={`px-8 py-2.5 rounded-xl text-white font-bold transition-all ${isUpscaled ? 'bg-gradient-to-r from-blue-700 to-blue-500 shadow-[0_0_20px_rgba(29,78,216,0.4)] active:scale-[0.98] hover:brightness-110' : 'bg-slate-800 opacity-50 cursor-not-allowed'}`}>Export Result</button>
             </div>
           </div>
 
@@ -255,8 +287,9 @@ export default function EditorPage() {
               <>
                 <img 
                   alt="Original Image" 
-                  className="absolute inset-0 w-full h-full object-cover" 
+                  className={`absolute inset-0 w-full h-full ${isCropped ? 'object-contain' : 'object-cover'}`} 
                   src={userImageUrl || ""}
+                  style={imageStyle}
                   draggable={false}
                 />
                 <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
@@ -269,8 +302,9 @@ export default function EditorPage() {
               <>
                 <img 
                   alt="Processing Image" 
-                  className="absolute inset-0 w-full h-full object-cover brightness-50" 
+                  className={`absolute inset-0 w-full h-full brightness-50 ${isCropped ? 'object-contain' : 'object-cover'}`} 
                   src={userImageUrl || ""}
+                  style={imageStyle}
                   draggable={false}
                 />
                 <motion.div 
@@ -303,8 +337,9 @@ export default function EditorPage() {
               <>
                 <img 
                   alt="Upscaled Image" 
-                  className="absolute inset-0 w-full h-full object-cover" 
+                  className={`absolute inset-0 w-full h-full ${isCropped ? 'object-contain' : 'object-cover'}`} 
                   src={userImageUrl || ""}
+                  style={imageStyle}
                   draggable={false}
                 />
                 <div className="absolute top-4 right-4 bg-blue-900/20 backdrop-blur-md px-4 py-2 rounded-xl border border-blue-500/30 z-10">
@@ -317,8 +352,9 @@ export default function EditorPage() {
                 >
                   <img 
                     alt="Original Image" 
-                    className="absolute inset-0 w-full h-full object-cover grayscale opacity-40" 
+                    className={`absolute inset-0 w-full h-full grayscale opacity-40 ${isCropped ? 'object-contain' : 'object-cover'}`} 
                     src={userImageUrl || ""}
+                    style={imageStyle}
                     draggable={false}
                   />
                   <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
@@ -339,7 +375,7 @@ export default function EditorPage() {
                   </div>
                 </div>
 
-                <button className="absolute bottom-24 right-6 z-30 bg-white text-blue-900 p-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all">
+                <button onClick={handleExport} className="absolute bottom-24 right-6 z-30 bg-white text-blue-900 p-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                   </svg>
@@ -349,19 +385,19 @@ export default function EditorPage() {
 
             {hasUploadedImage && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 border border-white/10 shadow-[0_24px_48px_rgba(0,0,0,0.5)] z-30 pointer-events-auto">
-                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                  <ZoomIn className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Zoom</span>
+                <button className="flex flex-col items-center gap-1 group transition-all" onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }}>
+                  <ZoomIn className={`w-5 h-5 transition-colors ${isZoomed ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`} />
+                  <span className={`text-[10px] font-bold uppercase tracking-tighter transition-colors ${isZoomed ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`}>Zoom</span>
                 </button>
                 <div className="w-px h-6 bg-slate-700" />
-                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                  <Crop className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Crop</span>
+                <button className="flex flex-col items-center gap-1 group transition-all" onClick={(e) => { e.stopPropagation(); setIsCropped(!isCropped); }}>
+                  <Crop className={`w-5 h-5 transition-colors ${isCropped ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`} />
+                  <span className={`text-[10px] font-bold uppercase tracking-tighter transition-colors ${isCropped ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`}>Crop</span>
                 </button>
                 <div className="w-px h-6 bg-slate-700" />
-                <button className="flex flex-col items-center gap-1 group" onClick={(e) => e.stopPropagation()}>
-                  <FlipHorizontal className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400 group-hover:text-blue-500">Mirror</span>
+                <button className="flex flex-col items-center gap-1 group transition-all" onClick={(e) => { e.stopPropagation(); setIsMirrored(!isMirrored); }}>
+                  <FlipHorizontal className={`w-5 h-5 transition-colors ${isMirrored ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`} />
+                  <span className={`text-[10px] font-bold uppercase tracking-tighter transition-colors ${isMirrored ? 'text-blue-500' : 'text-slate-400 group-hover:text-blue-400'}`}>Mirror</span>
                 </button>
               </div>
             )}
