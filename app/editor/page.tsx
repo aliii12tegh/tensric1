@@ -21,6 +21,8 @@ export default function EditorPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isUpscaled, setIsUpscaled] = useState(false);
+  const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Image comparison slider state
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -55,11 +57,20 @@ export default function EditorPage() {
     }
   }, [isDragging, handleSliderMove]);
 
-  const handleUpload = () => {
-    setHasUploadedImage(true);
-    setIsUpscaled(false);
-    setProgress(0);
-    setSliderPosition(50);
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setUserImageUrl(url);
+      setHasUploadedImage(true);
+      setIsUpscaled(false);
+      setProgress(0);
+      setSliderPosition(50);
+    }
   };
 
   const handleRunUpscaler = () => {
@@ -245,7 +256,7 @@ export default function EditorPage() {
                 <img 
                   alt="Original Image" 
                   className="absolute inset-0 w-full h-full object-cover" 
-                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  src={userImageUrl || ""}
                   draggable={false}
                 />
                 <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
@@ -259,7 +270,7 @@ export default function EditorPage() {
                 <img 
                   alt="Processing Image" 
                   className="absolute inset-0 w-full h-full object-cover brightness-50" 
-                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  src={userImageUrl || ""}
                   draggable={false}
                 />
                 <motion.div 
@@ -293,7 +304,7 @@ export default function EditorPage() {
                 <img 
                   alt="Upscaled Image" 
                   className="absolute inset-0 w-full h-full object-cover" 
-                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                  src={userImageUrl || ""}
                   draggable={false}
                 />
                 <div className="absolute top-4 right-4 bg-blue-900/20 backdrop-blur-md px-4 py-2 rounded-xl border border-blue-500/30 z-10">
@@ -307,7 +318,7 @@ export default function EditorPage() {
                   <img 
                     alt="Original Image" 
                     className="absolute inset-0 w-full h-full object-cover grayscale opacity-40" 
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop"
+                    src={userImageUrl || ""}
                     draggable={false}
                   />
                   <div className="absolute top-4 left-4 bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
@@ -358,7 +369,8 @@ export default function EditorPage() {
 
           {/* Bento Grid Upload Area */}
           <div className="mt-8 grid grid-cols-12 gap-6">
-            <div onClick={handleUpload} className="col-span-8 bg-slate-900 rounded-2xl p-8 flex flex-col items-center justify-center hover:bg-blue-900/10 hover:border-blue-500/30 border border-slate-800 transition-all cursor-pointer group">
+            <div onClick={handleUploadClick} className="col-span-8 bg-slate-900 rounded-2xl p-8 flex flex-col items-center justify-center hover:bg-blue-900/10 hover:border-blue-500/30 border border-slate-800 transition-all cursor-pointer group">
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/webp" className="hidden" />
               <div className="w-16 h-16 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]">
                 <UploadCloud className="w-8 h-8 text-blue-500" />
               </div>
