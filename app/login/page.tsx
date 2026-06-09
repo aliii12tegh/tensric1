@@ -63,9 +63,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8 flex flex-col items-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo1.png" alt="Tensric Logo" className="w-10 h-10 object-contain shadow-[0_0_20px_rgba(139,92,246,0.3)]" />
             <span className="font-display font-bold text-2xl tracking-tight text-white">Tensric</span>
           </Link>
           <h1 className="font-display text-3xl font-bold mb-2 text-white">

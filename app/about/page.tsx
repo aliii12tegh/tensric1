@@ -26,9 +26,7 @@ export default function AboutPage() {
       <nav className="fixed top-0 w-full z-50 glass">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <img src="/logo1.png" alt="Tensric Logo" className="w-8 h-8 object-contain shrink-0" />
             <span className="font-display font-bold text-xl tracking-tight">Tensric</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">

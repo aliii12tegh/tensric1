@@ -1,26 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..800&family=Sora:wght@100..800&display=swap');
 @import "tailwindcss";
 @source "../app";
 @source "../components";
 
 @theme {
-  --color-surface: #131313;
-  --color-surface-container-low: #1c1b1b;
-  --color-surface-container: #20201f;
-  --color-surface-container-high: #2a2a2a;
-  --color-primary: #d0bcff;
-  --color-primary-container: #a078ff;
-  --color-secondary: #5de6ff;
+  --color-surface: #1a1a1a;
+  --color-surface-container-low: #151515;
+  --color-surface-container: #1a1a1a;
+  --color-surface-container-high: #222222;
+  
+  --color-primary: #8b5cf6;
+  --color-primary-container: #6d28d9;
+  --color-secondary: #22d3ee;
+  --color-tertiary: #4c1d95;
+  
+  --color-blue-500: #22d3ee;
+  --color-blue-600: #8b5cf6;
+  --color-blue-700: #4c1d95;
+  --color-blue-900: #1a1a1a;
+  
+  --color-slate-950: #050505;
+  --color-slate-900: #121212;
+  --color-slate-800: #1a1a1a;
+  --color-slate-700: #2d2d2d;
+  --color-slate-600: #3f3f3f;
+  --color-slate-500: #525252;
+  --color-slate-400: #a3a3a3;
+  
   --color-on-surface: #e5e2e1;
   --color-outline: #958ea0;
   --color-outline-variant: #494454;
   
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-sora);
-  --font-mono: var(--font-jetbrains);
+  --font-sans: "Geist", sans-serif;
+  --font-display: "Sora", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 @utility glass {
-  background-color: color-mix(in srgb, #131313 80%, transparent);
+  background-color: color-mix(in srgb, #1a1a1a 80%, transparent);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
