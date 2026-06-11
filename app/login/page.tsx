@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, Loader2, Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 
 export default function LoginPage() {
@@ -25,14 +26,28 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
-      // Mock authentication delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const supabase = createClient();
       
       if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        if (error) throw error;
         setMessage("Check your email for the confirmation link!");
       } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
         router.push("/editor");
-        // router.refresh();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred during authentication.");
@@ -45,9 +60,14 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      // Mock OAuth delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      router.push("/editor");
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
     } catch (err) {
       setError(err instanceof Error ? err.message : `Could not authenticate with ${provider}.`);
       setLoading(false);
