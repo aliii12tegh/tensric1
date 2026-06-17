@@ -96,6 +96,7 @@ export default function SettingsPage() {
           <SidebarLink href="/editor" icon={ImageIcon} label="Upscaler" isCollapsed={isCollapsed} />
           <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" active isCollapsed={isCollapsed} />
           <SidebarLink href="/billing" icon={CreditCard} label="Billing" isCollapsed={isCollapsed} />
+          <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />
         </nav>
       </motion.aside>
 

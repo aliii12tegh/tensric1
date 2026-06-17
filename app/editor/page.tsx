@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Sparkles, Image as ImageIcon, Settings, CreditCard, UploadCloud, ZoomIn, Crop, FlipHorizontal, Zap, ChevronLeft } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Settings, CreditCard, UploadCloud, ZoomIn, Crop, FlipHorizontal, Zap, ChevronLeft, Shield } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { processImageUpscale } from "@/app/actions/upscale";
@@ -286,6 +286,21 @@ export default function EditorPage() {
                   className="whitespace-nowrap overflow-hidden"
                 >
                   Billing
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </Link>
+          <Link href="/admin" className={`text-slate-400 py-3 flex items-center hover:bg-slate-800/50 hover:text-white rounded-xl transition-all duration-200 font-medium ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-3 hover:translate-x-1'}`}>
+            <Shield className="w-5 h-5 shrink-0" />
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span 
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="whitespace-nowrap overflow-hidden"
+                >
+                  Admin
                 </motion.span>
               )}
             </AnimatePresence>

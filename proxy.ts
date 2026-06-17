@@ -40,7 +40,17 @@ export async function proxy(request: NextRequest) {
                            request.nextUrl.pathname.startsWith('/settings') ||
                            request.nextUrl.pathname.startsWith('/billing');
 
-  if (!user && isProtectedRoute) {
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  if (isAdminRoute) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    if (!adminEmail || user.email !== adminEmail) {
+      return NextResponse.redirect(new URL('/editor', request.url))
+    }
+  } else if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

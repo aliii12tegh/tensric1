@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Image as ImageIcon, Settings as SettingsIcon, CreditCard, ChevronLeft, Zap, FileText } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Settings as SettingsIcon, CreditCard, ChevronLeft, Zap, FileText, Shield } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
@@ -91,6 +91,7 @@ export default function BillingPage() {
           <SidebarLink href="/editor" icon={ImageIcon} label="Upscaler" isCollapsed={isCollapsed} />
           <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" isCollapsed={isCollapsed} />
           <SidebarLink href="/billing" icon={CreditCard} label="Billing" active isCollapsed={isCollapsed} />
+          <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />
         </nav>
       </motion.aside>
 
