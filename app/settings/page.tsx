@@ -56,6 +56,8 @@ export default function SettingsPage() {
     loadUser();
   }, []);
 
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
   const getInitials = () => {
     if (fullName) {
       return fullName.trim().split(/\s+/).map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -96,7 +98,7 @@ export default function SettingsPage() {
           <SidebarLink href="/editor" icon={ImageIcon} label="Upscaler" isCollapsed={isCollapsed} />
           <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" active isCollapsed={isCollapsed} />
           <SidebarLink href="/billing" icon={CreditCard} label="Billing" isCollapsed={isCollapsed} />
-          <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />
+          {isAdmin && <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />}
         </nav>
       </motion.aside>
 

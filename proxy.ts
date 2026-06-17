@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
                            request.nextUrl.pathname.startsWith('/billing');
 
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   if (isAdminRoute) {
     if (!user) {

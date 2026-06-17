@@ -52,6 +52,8 @@ export default function BillingPage() {
     loadUser();
   }, []);
 
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
   const handleUpgradePlan = async () => {
     try {
       const res = await fetch("/api/stripe", {
@@ -91,7 +93,7 @@ export default function BillingPage() {
           <SidebarLink href="/editor" icon={ImageIcon} label="Upscaler" isCollapsed={isCollapsed} />
           <SidebarLink href="/settings" icon={SettingsIcon} label="Settings" isCollapsed={isCollapsed} />
           <SidebarLink href="/billing" icon={CreditCard} label="Billing" active isCollapsed={isCollapsed} />
-          <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />
+          {isAdmin && <SidebarLink href="/admin" icon={Shield} label="Admin" isCollapsed={isCollapsed} />}
         </nav>
       </motion.aside>
 

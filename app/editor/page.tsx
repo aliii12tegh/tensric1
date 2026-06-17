@@ -1,11 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Sparkles, Image as ImageIcon, Settings, CreditCard, UploadCloud, ZoomIn, Crop, FlipHorizontal, Zap, ChevronLeft, Shield } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { processImageUpscale } from "@/app/actions/upscale";
+import { createClient } from "@/utils/supabase/client";
 
 export default function EditorPage() {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -26,6 +27,25 @@ export default function EditorPage() {
   const [userImageFile, setUserImageFile] = useState<File | null>(null);
   const [upscaledImageUrl, setUpscaledImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+        }
+      } catch (err) {
+        console.error("Error loading user:", err);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   // Batch Processing State
   const [batchFiles, setBatchFiles] = useState<File[]>([]);
@@ -290,21 +310,23 @@ export default function EditorPage() {
               )}
             </AnimatePresence>
           </Link>
-          <Link href="/admin" className={`text-slate-400 py-3 flex items-center hover:bg-slate-800/50 hover:text-white rounded-xl transition-all duration-200 font-medium ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-3 hover:translate-x-1'}`}>
-            <Shield className="w-5 h-5 shrink-0" />
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.span 
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  className="whitespace-nowrap overflow-hidden"
-                >
-                  Admin
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
+          {isAdmin && (
+            <Link href="/admin" className={`text-slate-400 py-3 flex items-center hover:bg-slate-800/50 hover:text-white rounded-xl transition-all duration-200 font-medium ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-3 hover:translate-x-1'}`}>
+              <Shield className="w-5 h-5 shrink-0" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span 
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="whitespace-nowrap overflow-hidden"
+                  >
+                    Admin
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+          )}
         </nav>
 
         <AnimatePresence>
