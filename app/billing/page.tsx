@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Image as ImageIcon, Settings as SettingsIcon, CreditCard, ChevronLeft, Zap, FileText } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
 
 function SidebarLink({ href, icon: Icon, label, active, isCollapsed }: { href: string; icon: React.ElementType; label: string; active?: boolean; isCollapsed: boolean }) {
   return (
@@ -27,9 +28,51 @@ const billingHistory = [
 
 export default function BillingPage() {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
   const creditsUsed = 38;
   const creditsTotal = 50;
   const creditsRemaining = creditsTotal - creditsUsed;
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+        }
+      } catch (err) {
+        console.error("Error loading user:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const handleUpgradePlan = async () => {
+    try {
+      const res = await fetch("/api/stripe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          priceId: "price_123456_placeholder", // Replace with real price ID in production
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || "Failed to initiate Stripe Checkout");
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error upgrading plan");
+    }
+  };
 
   return (
     <div className="h-screen flex text-white font-sans overflow-hidden">
@@ -69,7 +112,11 @@ export default function BillingPage() {
                 <h2 className="text-2xl font-bold text-white mt-3">Free Plan</h2>
                 <p className="text-sm text-slate-400 mt-1">50 credits / month · Renews June 1, 2026</p>
               </div>
-              <button className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-lg shadow-blue-600/20 hover:brightness-110 transition-all flex items-center gap-2">
+              <button 
+                onClick={handleUpgradePlan}
+                disabled={loading}
+                className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-lg shadow-blue-600/20 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-50"
+              >
                 <Zap className="w-4 h-4" />
                 Upgrade Plan
               </button>

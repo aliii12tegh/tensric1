@@ -5,6 +5,7 @@ import { useState, useRef, useCallback } from "react";
 import { Sparkles, Image as ImageIcon, Settings, CreditCard, UploadCloud, ZoomIn, Crop, FlipHorizontal, Zap, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { processImageUpscale } from "@/app/actions/upscale";
 
 export default function EditorPage() {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -22,6 +23,8 @@ export default function EditorPage() {
   const [progress, setProgress] = useState(0);
   const [isUpscaled, setIsUpscaled] = useState(false);
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
+  const [userImageFile, setUserImageFile] = useState<File | null>(null);
+  const [upscaledImageUrl, setUpscaledImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Batch Processing State
@@ -76,34 +79,63 @@ export default function EditorPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUserImageFile(file);
       const url = URL.createObjectURL(file);
       setUserImageUrl(url);
       setHasUploadedImage(true);
       setIsUpscaled(false);
+      setUpscaledImageUrl(null);
       setProgress(0);
       setSliderPosition(50);
     }
   };
 
   const handleRunUpscaler = () => {
-    if (!hasUploadedImage || isProcessing || isUpscaled) return;
+    if (!hasUploadedImage || isProcessing || isUpscaled || !userImageFile) return;
     setIsProcessing(true);
     setProgress(0);
     
-    // Simulate processing
     let currentProgress = 0;
     const interval = setInterval(() => {
-      currentProgress += Math.floor(Math.random() * 15) + 5;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
+      currentProgress += Math.floor(Math.random() * 10) + 5;
+      if (currentProgress >= 90) {
+        currentProgress = 90;
         clearInterval(interval);
-        setTimeout(() => {
-          setIsProcessing(false);
-          setIsUpscaled(true);
-        }, 500);
       }
       setProgress(currentProgress);
-    }, 400);
+    }, 300);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64data = reader.result as string;
+        const result = await processImageUpscale(base64data, scale);
+        
+        clearInterval(interval);
+        if (result.success && result.url) {
+          setProgress(100);
+          setUpscaledImageUrl(result.url as unknown as string);
+          setTimeout(() => {
+            setIsProcessing(false);
+            setIsUpscaled(true);
+          }, 500);
+        } else {
+          throw new Error(result.error || "Upscale failed");
+        }
+      } catch (err) {
+        clearInterval(interval);
+        setIsProcessing(false);
+        alert(err instanceof Error ? err.message : "An error occurred during upscaling.");
+      }
+    };
+
+    reader.onerror = () => {
+      clearInterval(interval);
+      setIsProcessing(false);
+      alert("Failed to read image file.");
+    };
+
+    reader.readAsDataURL(userImageFile);
   };
 
   const handleBatchSelect = () => {
@@ -135,6 +167,8 @@ export default function EditorPage() {
 
   const handleDiscard = () => {
     setUserImageUrl(null);
+    setUserImageFile(null);
+    setUpscaledImageUrl(null);
     setHasUploadedImage(false);
     setIsProcessing(false);
     setIsUpscaled(false);
@@ -146,9 +180,10 @@ export default function EditorPage() {
   };
 
   const handleExport = () => {
-    if (!isUpscaled || !userImageUrl) return;
+    const urlToDownload = upscaledImageUrl || userImageUrl;
+    if (!isUpscaled || !urlToDownload) return;
     const a = document.createElement("a");
-    a.href = userImageUrl;
+    a.href = urlToDownload;
     a.download = "tensric-upscaled.jpg";
     document.body.appendChild(a);
     a.click();
@@ -370,7 +405,7 @@ export default function EditorPage() {
                 <img 
                   alt="Upscaled Image" 
                   className={`absolute inset-0 w-full h-full ${isCropped ? 'object-contain' : 'object-cover'}`} 
-                  src={userImageUrl || ""}
+                  src={upscaledImageUrl || userImageUrl || ""}
                   style={imageStyle}
                   draggable={false}
                 />

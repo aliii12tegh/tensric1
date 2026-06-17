@@ -37,12 +37,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/editor') || 
-                           request.nextUrl.pathname.startsWith('/settings');
+                           request.nextUrl.pathname.startsWith('/settings') ||
+                           request.nextUrl.pathname.startsWith('/billing');
 
   if (!user && isProtectedRoute) {
-    // For local testing without Supabase set up, we'll bypass this redirect
-    // uncomment this line in production
-    // return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return supabaseResponse

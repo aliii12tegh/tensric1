@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Image as ImageIcon, Settings as SettingsIcon, CreditCard, ChevronLeft, User, Shield, Bell, AlertTriangle, Download, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
 
 function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
@@ -32,6 +33,51 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketing, setMarketing] = useState(false);
   const [defaultQuality, setDefaultQuality] = useState("4x");
+
+  const [user, setUser] = useState<any>(null);
+  const [fullName, setFullName] = useState("");
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+          setFullName(user.user_metadata?.full_name || "");
+        }
+      } catch (err) {
+        console.error("Error loading user:", err);
+      } finally {
+        setLoadingUser(false);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const getInitials = () => {
+    if (fullName) {
+      return fullName.trim().split(/\s+/).map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+    return "U";
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: fullName }
+      });
+      if (error) throw error;
+      alert("Profile updated successfully!");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error saving profile");
+    }
+  };
 
   return (
     <div className="h-screen flex text-white font-sans overflow-hidden">
@@ -67,21 +113,40 @@ export default function SettingsPage() {
             <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl p-6">
               <div className="flex flex-col sm:flex-row gap-8 items-start">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-blue-600/20">AL</div>
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-blue-600/20">
+                    {loadingUser ? "..." : getInitials()}
+                  </div>
                   <button className="text-xs font-semibold text-blue-500 hover:text-blue-400 transition-colors">Change Avatar</button>
                 </div>
                 <div className="flex-1 space-y-5 w-full">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                      <input type="text" defaultValue="Alex Lancer" className="w-full bg-slate-950/50 border border-slate-800 px-4 py-3 rounded-xl text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
+                      <input 
+                        type="text" 
+                        value={fullName} 
+                        onChange={(e) => setFullName(e.target.value)} 
+                        disabled={loadingUser}
+                        className="w-full bg-slate-950/50 border border-slate-800 px-4 py-3 rounded-xl text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all disabled:opacity-50" 
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-                      <input type="email" defaultValue="alex@tensric.io" disabled className="w-full bg-slate-950/50 border border-slate-800 px-4 py-3 rounded-xl text-slate-500 cursor-not-allowed" />
+                      <input 
+                        type="email" 
+                        value={user?.email || "No session found"} 
+                        disabled 
+                        className="w-full bg-slate-950/50 border border-slate-800 px-4 py-3 rounded-xl text-slate-500 cursor-not-allowed" 
+                      />
                     </div>
                   </div>
-                  <button className="px-6 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">Save Changes</button>
+                  <button 
+                    onClick={handleSaveChanges} 
+                    disabled={loadingUser}
+                    className="px-6 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-50"
+                  >
+                    Save Changes
+                  </button>
                 </div>
               </div>
             </div>
